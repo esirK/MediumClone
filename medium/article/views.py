@@ -1,3 +1,4 @@
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,20 +13,18 @@ class ArticleView(APIView):
 
     def post(self, request):
         article = request.data.get('article')
-        import pdb; pdb.set_trace()
-        title = article.get('title')
-        description = article.get('description')
-        body = article.get('body')
-        author_id = article.get('author_id')
 
         # Create an article from the above data
-        Article.objects.create(
-            title=title,
-            description=description,
-            body=body,
-            author_id=author_id
-        )
+        serializer = ArticleSerializer(data=article)
+        if serializer.is_valid(raise_exception=True):
+            article_saved = serializer.save()
+        return Response({"success": "Article '{}' created successfully".format(article_saved.title)})
 
-        return Response({"success": "Article {} created successfully".format(title)})
-
+    def put(self, request, pk):
+        saved_article = get_object_or_404(Article, pk)
+        data = request.data.get('article')
+        serializer = ArticleSerializer(instance=saved_article, data=data)
+        if serializer.is_valid(raise_exception=True):
+            article_saved = serializer.save()
+        return Response({"success": "Article '{}' updated successfully".format(article_saved.title)})
 
